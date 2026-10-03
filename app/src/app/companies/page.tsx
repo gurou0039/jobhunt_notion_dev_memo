@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
 import { createCompany, deleteCompany } from "./actions";
 import { IndustryFields } from "./industry-fields";
+import { SELECTION_STATUS_OPTIONS } from "../../lib/selection-status";
 
 type Company = {
   id: string;
@@ -24,17 +25,6 @@ type PageProps = {
     sort?: string;
   }>;
 };
-
-const STATUS_OPTIONS = [
-  "未エントリー",
-  "ES提出",
-  "Webテスト",
-  "1次面接",
-  "2次面接",
-  "最終面接",
-  "内定",
-  "お祈り",
-];
 
 const SORT_OPTIONS = [
   { value: "updated_desc", label: "更新日が新しい順" },
@@ -209,10 +199,10 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
               <select
                 id="selection_status"
                 name="selection_status"
-                defaultValue="未エントリー"
+                defaultValue={SELECTION_STATUS_OPTIONS[0]}
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
               >
-                {STATUS_OPTIONS.map((option) => (
+                {SELECTION_STATUS_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -308,7 +298,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                   className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
                 >
                   <option value="all">すべて</option>
-                  {STATUS_OPTIONS.map((option) => (
+                  {SELECTION_STATUS_OPTIONS.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>

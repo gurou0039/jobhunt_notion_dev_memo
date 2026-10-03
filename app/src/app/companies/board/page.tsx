@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "../../../lib/supabase/server";
+import { SELECTION_STATUS_OPTIONS } from "../../../lib/selection-status";
 
 type Company = {
   id: string;
@@ -13,17 +14,6 @@ type Company = {
   created_at: string;
   updated_at: string;
 };
-
-const STATUS_COLUMNS = [
-  "未エントリー",
-  "ES提出",
-  "Webテスト",
-  "1次面接",
-  "2次面接",
-  "最終面接",
-  "内定",
-  "お祈り",
-] as const;
 
 export default async function CompaniesBoardPage() {
   const supabase = await createClient();
@@ -47,7 +37,7 @@ export default async function CompaniesBoardPage() {
 
   const companies = (data ?? []) as Company[];
 
-  const groupedCompanies = STATUS_COLUMNS.map((status) => ({
+  const groupedCompanies = SELECTION_STATUS_OPTIONS.map((status) => ({
     status,
     items: companies.filter((company) => company.selection_status === status),
   }));

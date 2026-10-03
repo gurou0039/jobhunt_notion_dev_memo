@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "../lib/supabase/server";
+import { SELECTION_STATUS_OPTIONS } from "../lib/selection-status";
 
 type Company = {
   id: string;
@@ -38,10 +39,10 @@ export default async function Home() {
 
   const totalCompanies = companies.length;
   const notEnteredCount = companies.filter(
-    (company) => company.selection_status === "未エントリー",
+    (company) => company.selection_status === SELECTION_STATUS_OPTIONS[0],
   ).length;
   const interviewCount = companies.filter((company) =>
-    ["1次面接", "2次面接", "最終面接"].includes(company.selection_status),
+    ["一次面接", "二次面接", "最終面接"].includes(company.selection_status),
   ).length;
   const offerCount = companies.filter(
     (company) => company.selection_status === "内定",
@@ -101,10 +102,10 @@ export default async function Home() {
             </Link>
 
             <Link
-              href="/companies?status=未エントリー"
+              href={`/companies?status=${SELECTION_STATUS_OPTIONS[0]}`}
               className="px-5 py-2 rounded-md bg-slate-200 text-black hover:bg-slate-300"
             >
-              未エントリーを確認
+              未応募を確認
             </Link>
           </div>
         </section>
@@ -116,7 +117,7 @@ export default async function Home() {
           </div>
 
           <div className="bg-white rounded-xl shadow p-6">
-            <p className="text-sm text-slate-500 mb-2">未エントリー</p>
+            <p className="text-sm text-slate-500 mb-2">未応募</p>
             <p className="text-3xl font-bold text-black">{notEnteredCount}</p>
           </div>
 

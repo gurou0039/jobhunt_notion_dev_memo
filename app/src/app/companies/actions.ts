@@ -7,6 +7,11 @@ import {
   INDUSTRY_CATEGORY_OTHER,
   isIndustryCategory,
 } from "./industry";
+import {
+  canAdvanceSelectionStatus,
+  isSelectionStatus,
+  SELECTION_STATUS_OPTIONS,
+} from "../../lib/selection-status";
 
 function getIndustryValues(formData: FormData) {
   const category = String(formData.get("industry_category") || "").trim();
@@ -58,12 +63,16 @@ export async function createCompany(formData: FormData) {
   const { category: industry_category, industry } = getIndustryValues(formData);
   const motivation_level = Number(formData.get("motivation_level") || 0);
   const selection_status = String(
-    formData.get("selection_status") || "未エントリー",
+    formData.get("selection_status") || SELECTION_STATUS_OPTIONS[0],
   ).trim();
   const memo = String(formData.get("memo") || "").trim();
 
   if (!company_name) {
     throw new Error("企業名は必須です");
+  }
+
+  if (!isSelectionStatus(selection_status)) {
+    throw new Error("選考状況の選択が正しくありません");
   }
 
   const safeMotivationLevel = Math.min(Math.max(motivation_level, 0), 5);
@@ -131,7 +140,7 @@ export async function updateCompany(formData: FormData) {
   const { category: industry_category, industry } = getIndustryValues(formData);
   const motivation_level = Number(formData.get("motivation_level") || 0);
   const selection_status = String(
-    formData.get("selection_status") || "未エントリー",
+    formData.get("selection_status") || SELECTION_STATUS_OPTIONS[0],
   ).trim();
   const memo = String(formData.get("memo") || "").trim();
 
@@ -141,6 +150,25 @@ export async function updateCompany(formData: FormData) {
 
   if (!company_name) {
     throw new Error("企業名は必須です");
+  }
+
+  if (!isSelectionStatus(selection_status)) {
+    throw new Error("選考状況の選択が正しくありません");
+  }
+
+  const { data: currentCompany, error: currentCompanyError } = await supabase
+    .from("companies")
+    .select("selection_status")
+    .eq("id", companyId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (currentCompanyError || !currentCompany) {
+    throw new Error("更新対象の企業が見つかりません");
+  }
+
+  if (!canAdvanceSelectionStatus(currentCompany.selection_status, selection_status)) {
+    throw new Error("選考状況を前の段階へ戻すことはできません");
   }
 
   const safeMotivationLevel = Math.min(Math.max(motivation_level, 0), 5);

@@ -4,6 +4,10 @@ import { createClient } from "../../../../lib/supabase/server";
 import { updateCompany } from "../../actions";
 import { getIndustryFormValues } from "../../industry";
 import { IndustryFields } from "../../industry-fields";
+import {
+  getSelectionStatusIndex,
+  SELECTION_STATUS_OPTIONS,
+} from "../../../../lib/selection-status";
 
 type Company = {
   id: string;
@@ -49,6 +53,7 @@ export default async function CompanyEditPage({ params }: PageProps) {
   }
 
   const company = data as Company;
+  const progressIndex = getSelectionStatusIndex(company.selection_status);
   const industryFormValues = getIndustryFormValues(
     company.industry_category,
     company.industry,
@@ -130,14 +135,15 @@ export default async function CompanyEditPage({ params }: PageProps) {
                 defaultValue={company.selection_status}
                 className="w-full border text-black px-3 py-2"
               >
-                <option value="未エントリー">未エントリー</option>
-                <option value="ES提出">ES提出</option>
-                <option value="Webテスト">Webテスト</option>
-                <option value="1次面接">1次面接</option>
-                <option value="2次面接">2次面接</option>
-                <option value="最終面接">最終面接</option>
-                <option value="内定">内定</option>
-                <option value="お祈り">お祈り</option>
+                {SELECTION_STATUS_OPTIONS.map((status, index) => (
+                  <option
+                    key={status}
+                    value={status}
+                    disabled={index < progressIndex}
+                  >
+                    {status}
+                  </option>
+                ))}
               </select>
             </div>
 
