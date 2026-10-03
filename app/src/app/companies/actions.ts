@@ -3,6 +3,45 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
+import {
+  INDUSTRY_CATEGORY_OTHER,
+  isIndustryCategory,
+} from "./industry";
+
+function getIndustryValues(formData: FormData) {
+  const category = String(formData.get("industry_category") || "").trim();
+  const other = String(formData.get("industry_other") || "").trim();
+  const legacyIndustry = String(formData.get("industry") || "").trim();
+  const categoryRequired = formData.has("industry_category_required");
+
+  if (!category) {
+    if (legacyIndustry) {
+      return { category: null, industry: legacyIndustry };
+    }
+
+    if (!categoryRequired) {
+      return { category: null, industry: null };
+    }
+
+    throw new Error("業界カテゴリを選択してください。もう一度入力してください。");
+  }
+
+  if (!isIndustryCategory(category)) {
+    throw new Error("業界カテゴリの選択が正しくありません");
+  }
+
+  if (category === INDUSTRY_CATEGORY_OTHER) {
+    const customIndustry = other || legacyIndustry;
+
+    if (!customIndustry) {
+      throw new Error("その他の業界名を入力してください");
+    }
+
+    return { category, industry: customIndustry };
+  }
+
+  return { category, industry: category };
+}
 
 export async function createCompany(formData: FormData) {
   const supabase = await createClient();
@@ -16,7 +55,7 @@ export async function createCompany(formData: FormData) {
   }
 
   const company_name = String(formData.get("company_name") || "").trim();
-  const industry = String(formData.get("industry") || "").trim();
+  const { category: industry_category, industry } = getIndustryValues(formData);
   const motivation_level = Number(formData.get("motivation_level") || 0);
   const selection_status = String(
     formData.get("selection_status") || "未エントリー",
@@ -32,6 +71,7 @@ export async function createCompany(formData: FormData) {
   const { error } = await supabase.from("companies").insert({
     user_id: user.id,
     company_name,
+    industry_category,
     industry: industry || null,
     motivation_level: safeMotivationLevel,
     selection_status,
@@ -88,7 +128,7 @@ export async function updateCompany(formData: FormData) {
 
   const companyId = String(formData.get("company_id") || "").trim();
   const company_name = String(formData.get("company_name") || "").trim();
-  const industry = String(formData.get("industry") || "").trim();
+  const { category: industry_category, industry } = getIndustryValues(formData);
   const motivation_level = Number(formData.get("motivation_level") || 0);
   const selection_status = String(
     formData.get("selection_status") || "未エントリー",
@@ -109,6 +149,7 @@ export async function updateCompany(formData: FormData) {
     .from("companies")
     .update({
       company_name,
+      industry_category,
       industry: industry || null,
       motivation_level: safeMotivationLevel,
       selection_status,

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
 import { createCompany, deleteCompany } from "./actions";
+import { IndustryFields } from "./industry-fields";
 
 type Company = {
   id: string;
@@ -174,21 +175,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="new_industry"
-                className="block text-sm font-medium text-slate-700"
-              >
-                業界
-              </label>
-              <input
-                id="new_industry"
-                name="industry"
-                type="text"
-                placeholder="IT / メーカー"
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
-              />
-            </div>
+            <IndustryFields />
 
             <div>
               <label
@@ -252,7 +239,8 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
             <div className="flex items-end">
               <button
                 type="submit"
-                className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                disabled
+                className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 企業を登録
               </button>

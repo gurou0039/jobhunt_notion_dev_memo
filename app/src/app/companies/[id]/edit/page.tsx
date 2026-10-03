@@ -2,12 +2,15 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "../../../../lib/supabase/server";
 import { updateCompany } from "../../actions";
+import { getIndustryFormValues } from "../../industry";
+import { IndustryFields } from "../../industry-fields";
 
 type Company = {
   id: string;
   user_id: string;
   company_name: string;
   industry: string | null;
+  industry_category: string | null;
   motivation_level: number;
   selection_status: string;
   memo: string | null;
@@ -46,6 +49,10 @@ export default async function CompanyEditPage({ params }: PageProps) {
   }
 
   const company = data as Company;
+  const industryFormValues = getIndustryFormValues(
+    company.industry_category,
+    company.industry,
+  );
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -95,15 +102,10 @@ export default async function CompanyEditPage({ params }: PageProps) {
               />
             </div>
 
-            <div>
-              <label className="block text-black mb-1">業界</label>
-              <input
-                name="industry"
-                type="text"
-                defaultValue={company.industry ?? ""}
-                className="w-full border text-black px-3 py-2"
-              />
-            </div>
+            <IndustryFields
+              initialCategory={industryFormValues.category}
+              initialOther={industryFormValues.other}
+            />
 
             <div>
               <label className="block text-black mb-1">志望度</label>
@@ -152,7 +154,8 @@ export default async function CompanyEditPage({ params }: PageProps) {
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                disabled
+                className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 更新する
               </button>

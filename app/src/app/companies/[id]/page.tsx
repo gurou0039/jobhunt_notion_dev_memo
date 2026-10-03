@@ -8,6 +8,7 @@ type Company = {
   user_id: string;
   company_name: string;
   industry: string | null;
+  industry_category: string | null;
   motivation_level: number;
   selection_status: string;
   memo: string | null;
@@ -228,6 +229,12 @@ export default async function CompanyDetailPage({ params }: PageProps) {
                 value={company.company_name}
               />
               <input type="hidden" name="industry" value={company.industry ?? ""} />
+              <input
+                type="hidden"
+                name="industry_category"
+                value={company.industry_category ?? ""}
+              />
+              <input type="hidden" name="industry_other" value="" />
 
               <h2 className="text-xl font-bold text-slate-950">詳細を更新</h2>
 
