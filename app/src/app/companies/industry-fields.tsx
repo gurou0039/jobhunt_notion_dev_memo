@@ -61,25 +61,24 @@ export function IndustryFields({
         )}
       </div>
 
-      {category === INDUSTRY_CATEGORY_OTHER && (
-        <div>
-          <label
-            htmlFor="industry_other"
-            className="block text-sm font-medium text-slate-700"
-          >
-            業界名を入力
-          </label>
-          <input
-            id="industry_other"
-            name="industry_other"
-            type="text"
-            required
-            defaultValue={initialOther}
-            placeholder="例: エンタメ"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
-          />
-        </div>
-      )}
+      <div className={category === INDUSTRY_CATEGORY_OTHER ? "" : "hidden"}>
+        <label
+          htmlFor="industry_other"
+          className="block text-sm font-medium text-slate-700"
+        >
+          業界名を入力
+        </label>
+        <input
+          id="industry_other"
+          name="industry_other"
+          type="text"
+          required={category === INDUSTRY_CATEGORY_OTHER}
+          disabled={category !== INDUSTRY_CATEGORY_OTHER}
+          defaultValue={initialOther}
+          placeholder="例: エンタメ"
+          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
+        />
+      </div>
     </div>
   );
 }

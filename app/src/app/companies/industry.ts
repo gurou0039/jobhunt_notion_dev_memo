@@ -35,6 +35,13 @@ export function getIndustryFormValues(
     };
   }
 
+  if (normalizedIndustry === INDUSTRY_CATEGORY_OTHER) {
+    return {
+      category: INDUSTRY_CATEGORY_OTHER,
+      other: INDUSTRY_CATEGORY_OTHER,
+    };
+  }
+
   if (isIndustryCategory(normalizedCategory)) {
     return { category: normalizedCategory, other: "" };
   }
@@ -48,4 +55,3 @@ export function getIndustryFormValues(
     other: normalizedIndustry,
   };
 }
-
