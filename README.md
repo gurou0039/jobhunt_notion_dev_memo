@@ -70,6 +70,7 @@ Shukatsu OSでは、就活に必要な情報を1つの画面群でつなぎ、
 - [10_公開運用と改善](docs/10_公開運用と改善.md)
 - [11_MVP定義](docs/11_MVP定義.md)
 - [12_開発ルール](docs/12_開発ルール.md)
+- [13_Supabase Auth設定手順](docs/13_Supabase%20Auth設定手順.md)
 
 ## リポジトリ運用の基本
 - 仕様は docs 配下に追記する
