@@ -2,12 +2,19 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "../../../../lib/supabase/server";
 import { updateCompany } from "../../actions";
+import { getIndustryFormValues } from "../../industry";
+import { IndustryFields } from "../../industry-fields";
+import {
+  getSelectionStatusIndex,
+  SELECTION_STATUS_OPTIONS,
+} from "../../../../lib/selection-status";
 
 type Company = {
   id: string;
   user_id: string;
   company_name: string;
   industry: string | null;
+  industry_category: string | null;
   motivation_level: number;
   selection_status: string;
   memo: string | null;
@@ -46,6 +53,11 @@ export default async function CompanyEditPage({ params }: PageProps) {
   }
 
   const company = data as Company;
+  const progressIndex = getSelectionStatusIndex(company.selection_status);
+  const industryFormValues = getIndustryFormValues(
+    company.industry_category,
+    company.industry,
+  );
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -95,15 +107,10 @@ export default async function CompanyEditPage({ params }: PageProps) {
               />
             </div>
 
-            <div>
-              <label className="block text-black mb-1">業界</label>
-              <input
-                name="industry"
-                type="text"
-                defaultValue={company.industry ?? ""}
-                className="w-full border text-black px-3 py-2"
-              />
-            </div>
+            <IndustryFields
+              initialCategory={industryFormValues.category}
+              initialOther={industryFormValues.other}
+            />
 
             <div>
               <label className="block text-black mb-1">志望度</label>
@@ -128,14 +135,15 @@ export default async function CompanyEditPage({ params }: PageProps) {
                 defaultValue={company.selection_status}
                 className="w-full border text-black px-3 py-2"
               >
-                <option value="未エントリー">未エントリー</option>
-                <option value="ES提出">ES提出</option>
-                <option value="Webテスト">Webテスト</option>
-                <option value="1次面接">1次面接</option>
-                <option value="2次面接">2次面接</option>
-                <option value="最終面接">最終面接</option>
-                <option value="内定">内定</option>
-                <option value="お祈り">お祈り</option>
+                {SELECTION_STATUS_OPTIONS.map((status, index) => (
+                  <option
+                    key={status}
+                    value={status}
+                    disabled={index < progressIndex}
+                  >
+                    {status}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -152,7 +160,8 @@ export default async function CompanyEditPage({ params }: PageProps) {
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                disabled
+                className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 更新する
               </button>

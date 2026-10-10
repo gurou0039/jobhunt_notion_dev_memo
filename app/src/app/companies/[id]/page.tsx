@@ -2,12 +2,17 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "../../../lib/supabase/server";
 import { updateCompany } from "../actions";
+import {
+  getSelectionStatusIndex,
+  SELECTION_STATUS_OPTIONS,
+} from "../../../lib/selection-status";
 
 type Company = {
   id: string;
   user_id: string;
   company_name: string;
   industry: string | null;
+  industry_category: string | null;
   motivation_level: number;
   selection_status: string;
   memo: string | null;
@@ -21,17 +26,6 @@ type PageProps = {
   }>;
 };
 
-const STATUS_OPTIONS = [
-  "未エントリー",
-  "ES提出",
-  "Webテスト",
-  "1次面接",
-  "2次面接",
-  "最終面接",
-  "内定",
-  "お祈り",
-];
-
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("ja-JP", {
     dateStyle: "medium",
@@ -40,8 +34,7 @@ function formatDateTime(value: string) {
 }
 
 function getProgressIndex(status: string) {
-  const index = STATUS_OPTIONS.indexOf(status);
-  return index >= 0 ? index : 0;
+  return getSelectionStatusIndex(status);
 }
 
 export default async function CompanyDetailPage({ params }: PageProps) {
@@ -171,7 +164,7 @@ export default async function CompanyDetailPage({ params }: PageProps) {
               </div>
 
               <ol className="mt-6 space-y-3">
-                {STATUS_OPTIONS.map((status, index) => {
+                {SELECTION_STATUS_OPTIONS.map((status, index) => {
                   const isCurrent = status === company.selection_status;
                   const isPast = index < progressIndex;
 
@@ -228,6 +221,12 @@ export default async function CompanyDetailPage({ params }: PageProps) {
                 value={company.company_name}
               />
               <input type="hidden" name="industry" value={company.industry ?? ""} />
+              <input
+                type="hidden"
+                name="industry_category"
+                value={company.industry_category ?? ""}
+              />
+              <input type="hidden" name="industry_other" value="" />
 
               <h2 className="text-xl font-bold text-slate-950">詳細を更新</h2>
 
@@ -267,8 +266,12 @@ export default async function CompanyDetailPage({ params }: PageProps) {
                     defaultValue={company.selection_status}
                     className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
                   >
-                    {STATUS_OPTIONS.map((status) => (
-                      <option key={status} value={status}>
+                    {SELECTION_STATUS_OPTIONS.map((status, index) => (
+                      <option
+                        key={status}
+                        value={status}
+                        disabled={index < progressIndex}
+                      >
                         {status}
                       </option>
                     ))}
