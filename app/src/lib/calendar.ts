@@ -11,6 +11,15 @@ export type CalendarEvent = {
   related_company_id: string | null;
 };
 
+export const EVENT_TYPE_OPTIONS = [
+  { value: "briefing", label: "説明会" },
+  { value: "interview", label: "面接" },
+  { value: "deadline", label: "締切" },
+  { value: "other", label: "その他" },
+] as const;
+
+export type EventType = (typeof EVENT_TYPE_OPTIONS)[number]["value"];
+
 type DateParts = {
   year: number;
   month: number;
@@ -202,6 +211,30 @@ export function getEventTypeLabel(eventType: string) {
 
 export function getEventTypeStyle(eventType: string) {
   return EVENT_TYPE_STYLES[eventType] ?? EVENT_TYPE_STYLES.other;
+}
+
+export function isEventType(value: string): value is EventType {
+  return EVENT_TYPE_OPTIONS.some((option) => option.value === value);
+}
+
+export function formatDateTimeLocal(value: string | null | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
 }
 
 export function buildCalendarHref(

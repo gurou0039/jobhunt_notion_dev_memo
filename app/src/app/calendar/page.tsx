@@ -183,6 +183,9 @@ export default async function CalendarPage({ searchParams }: PageProps) {
               <Link href={buildCalendarHref(view, todayDateKey())} className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                 今日
               </Link>
+              <Link href="/calendar/events/new" className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                予定を追加
+              </Link>
             </div>
           </div>
 
@@ -295,6 +298,12 @@ export default async function CalendarPage({ searchParams }: PageProps) {
             <p className="mt-5 border-t border-slate-200 pt-4 text-sm text-slate-500">
               この画面では、予定の種別と開始・終了日時を確認できます。
             </p>
+            <Link
+              href={`/calendar/events/${selectedEvent.id}/edit`}
+              className="mt-4 inline-flex rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              予定を編集
+            </Link>
           </section>
         ) : params.event && !error ? (
           <section id="event-detail" className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900" role="status">
