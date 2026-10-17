@@ -98,7 +98,7 @@ export async function createEsDocument(formData: FormData) {
 
   revalidatePath("/es");
   revalidatePath(`/companies/${values.company_id}`);
-  redirect(`/es/${data.id}?saved=1`);
+  redirect(`/es/${data.id}?saved=created`);
 }
 
 export async function updateEsDocument(formData: FormData) {
@@ -134,9 +134,9 @@ export async function updateEsDocument(formData: FormData) {
 
   const { data, error } = await supabase
     .from("es_documents")
-    .update({ ...values, updated_at: new Date().toISOString() })
+    .update(values)
     .eq("id", documentId)
-    .select("id")
+    .select("id,version,updated_at")
     .maybeSingle();
 
   if (error || !data) {
@@ -146,7 +146,7 @@ export async function updateEsDocument(formData: FormData) {
   revalidatePath("/es");
   revalidatePath(`/es/${documentId}`);
   revalidatePath(`/companies/${values.company_id}`);
-  redirect(`/es/${documentId}?saved=1`);
+  redirect(`/es/${documentId}?saved=updated`);
 }
 
 export async function deleteEsDocument(formData: FormData) {

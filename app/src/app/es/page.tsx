@@ -128,11 +128,11 @@ export default async function EsPage({ searchParams }: PageProps) {
                     <p className="text-sm font-medium text-blue-600">{getEsDocumentTypeLabel(document.doc_type)}</p>
                     <h2 className="mt-1 truncate text-lg font-bold text-slate-950">{document.title}</h2>
                   </div>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">v{document.version}</span>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">現在 v{document.version}</span>
                 </div>
                 <p className="mt-3 text-sm font-medium text-slate-700">{companyNames.get(document.company_id) ?? "企業不明"}</p>
                 <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{document.content || "本文はまだありません。"}</p>
-                <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">最終更新 {formatEsUpdatedAt(document.updated_at)}</p>
+                <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">最終更新日時 {formatEsUpdatedAt(document.updated_at)}</p>
               </Link>
             ))}
           </section>

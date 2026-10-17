@@ -10,7 +10,7 @@ import { deleteEsDocument } from "../actions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: "created" | "updated"; error?: string }>;
 };
 
 export default async function EsDetailPage({ params, searchParams }: PageProps) {
@@ -60,7 +60,8 @@ export default async function EsDetailPage({ params, searchParams }: PageProps) 
       </nav>
 
       <main className="mx-auto max-w-4xl space-y-5 px-3 py-6 sm:px-4 sm:py-8">
-        {query.saved === "1" ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">ESを保存しました。</div> : null}
+        {query.saved === "created" ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">ESを作成しました。現在のバージョンは v{document.version} です。</div> : null}
+        {query.saved === "updated" ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">ESを更新しました。現在のバージョンは v{document.version} です。</div> : null}
         {query.error ? <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900" role="alert">{query.error}</div> : null}
 
         <article className="rounded-xl bg-white p-5 shadow sm:p-8">
@@ -71,13 +72,33 @@ export default async function EsDetailPage({ params, searchParams }: PageProps) 
             </div>
             <h1 className="mt-4 text-2xl font-bold text-slate-950 sm:text-3xl">{document.title}</h1>
             <p className="mt-2 font-medium text-slate-700">{company.company_name}</p>
-            <p className="mt-2 text-xs text-slate-500">最終更新 {formatEsUpdatedAt(document.updated_at)}</p>
           </header>
 
           <div className="min-h-64 whitespace-pre-wrap py-6 leading-8 text-slate-800">
             {document.content || "本文はまだありません。編集画面から入力できます。"}
           </div>
         </article>
+
+        <section className="rounded-xl bg-white p-5 shadow sm:p-6" aria-labelledby="es-update-info">
+          <h2 id="es-update-info" className="font-bold text-slate-950">更新情報</h2>
+          <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-slate-500">現在のバージョン</dt>
+              <dd className="mt-1 font-semibold text-slate-950">v{document.version}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">作成日時</dt>
+              <dd className="mt-1 font-semibold text-slate-950">{formatEsUpdatedAt(document.created_at)}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">最終更新日時</dt>
+              <dd className="mt-1 font-semibold text-slate-950">{formatEsUpdatedAt(document.updated_at)}</dd>
+            </div>
+          </dl>
+          <p className="mt-4 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
+            編集して保存するたびにバージョンが1つ上がります。MVPでは過去バージョンの本文は保持しません。
+          </p>
+        </section>
 
         <section className="rounded-xl border border-rose-200 bg-white p-5 shadow-sm">
           <h2 className="font-bold text-slate-950">このESを削除</h2>
