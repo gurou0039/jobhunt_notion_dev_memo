@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import {
   exchangePasswordResetCode,
+  getPasswordResetSession,
   updatePassword,
 } from "../../lib/supabase/auth";
 
@@ -13,10 +14,14 @@ function getFriendlyError(error: unknown) {
     return "エラーが発生しました。再設定リンクを開き直してください。";
   }
 
+  const message = error.message.toLowerCase();
+
   if (
-    error.message.includes("expired") ||
-    error.message.includes("invalid") ||
-    error.message.includes("Auth session missing")
+    message.includes("expired") ||
+    message.includes("invalid") ||
+    message.includes("auth session missing") ||
+    message.includes("code verifier") ||
+    message.includes("access token")
   ) {
     return "再設定リンクが期限切れ、または無効です。もう一度メールを送信してください。";
   }
@@ -25,47 +30,92 @@ function getFriendlyError(error: unknown) {
 }
 
 function ResetPasswordForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const resetCode = searchParams.get("code");
-  const [isPreparing, setIsPreparing] = useState(() => Boolean(resetCode));
+  const [isPreparing, setIsPreparing] = useState(true);
+  const [hasResetSession, setHasResetSession] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const exchangePromiseRef = useRef<{
+    code: string;
+    promise: ReturnType<typeof exchangePasswordResetCode>;
+  } | null>(null);
 
   useEffect(() => {
-    if (!resetCode) {
-      return;
-    }
-
     let isMounted = true;
 
-    exchangePasswordResetCode(resetCode)
-      .then(() => {
+    const prepareResetSession = async () => {
+      try {
+        let session;
+        if (resetCode) {
+          const currentExchange = exchangePromiseRef.current;
+          const exchangePromise =
+            currentExchange?.code === resetCode
+              ? currentExchange.promise
+              : exchangePasswordResetCode(resetCode);
+
+          exchangePromiseRef.current = { code: resetCode, promise: exchangePromise };
+          session = (await exchangePromise).session;
+        } else {
+          session = await getPasswordResetSession();
+        }
+
+        if (!session) {
+          throw new Error("Auth session missing");
+        }
+
         if (!isMounted) return;
+        if (resetCode) {
+          window.history.replaceState(
+            null,
+            "",
+            `${window.location.pathname}${window.location.hash}`,
+          );
+        }
         setError(null);
-        router.replace("/reset-password");
-      })
-      .catch((err) => {
+        setHasResetSession(true);
+      } catch (err) {
         if (!isMounted) return;
+
+        // The reset code exchange can run twice in development. If the first
+        // attempt already established a session, keep the form usable and do
+        // not show the second attempt's stale error.
+        const session = await getPasswordResetSession().catch(() => null);
+        if (session) {
+          setError(null);
+          setHasResetSession(true);
+          return;
+        }
+
         setError(getFriendlyError(err));
-      })
-      .finally(() => {
+      } finally {
         if (!isMounted) return;
         setIsPreparing(false);
+      }
+    };
+
+    prepareResetSession()
+      .catch(() => {
+        // prepareResetSession handles the user-facing error state.
       });
 
     return () => {
       isMounted = false;
     };
-  }, [router, resetCode]);
+  }, [resetCode]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setSuccessMessage(null);
+
+    if (!hasResetSession) {
+      setError("再設定リンクが期限切れ、または無効です。もう一度メールを送信してください。");
+      return;
+    }
 
     if (password.length < 6) {
       setError("パスワードは6文字以上で入力してください。");
@@ -85,6 +135,7 @@ function ResetPasswordForm() {
       setPassword("");
       setConfirmPassword("");
     } catch (err) {
+      console.error("Password update error", err);
       setError(getFriendlyError(err));
     } finally {
       setIsSaving(false);
@@ -122,7 +173,7 @@ function ResetPasswordForm() {
             <p className="rounded-md bg-white p-4 text-center text-sm text-gray-600 shadow-sm">
               再設定リンクを確認しています...
             </p>
-          ) : (
+          ) : hasResetSession ? (
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label
@@ -170,7 +221,7 @@ function ResetPasswordForm() {
                 {isSaving ? "更新中..." : "パスワードを更新"}
               </button>
             </form>
-          )}
+          ) : null}
 
           <div className="text-center text-sm">
             <Link href="/login" className="text-blue-600 hover:text-blue-500">
