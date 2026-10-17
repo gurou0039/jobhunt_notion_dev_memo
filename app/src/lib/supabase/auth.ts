@@ -68,6 +68,18 @@ export async function exchangePasswordResetCode(code: string) {
 }
 
 /**
+ * Read the session established by a password reset link.
+ */
+export async function getPasswordResetSession() {
+  const supabase = createClient()
+
+  const { data, error } = await supabase.auth.getSession()
+
+  if (error) throw error
+  return data.session
+}
+
+/**
  * Update the current user's password after a reset session is established.
  */
 export async function updatePassword(password: string) {
