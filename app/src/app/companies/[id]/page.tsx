@@ -318,6 +318,18 @@ export default async function CompanyDetailPage({ params }: PageProps) {
                 >
                   企業情報を編集
                 </Link>
+                <Link
+                  href={`/es?company=${company.id}`}
+                  className="rounded-md bg-emerald-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-emerald-700"
+                >
+                  この企業のESを見る
+                </Link>
+                <Link
+                  href={`/es/new?company=${company.id}`}
+                  className="rounded-md border border-emerald-300 px-4 py-2 text-center text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+                >
+                  ESを新規作成
+                </Link>
               </div>
             </div>
           </aside>
