@@ -102,6 +102,13 @@ export default async function Home() {
             </Link>
 
             <Link
+              href="/es"
+              className="px-5 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              ESを管理
+            </Link>
+
+            <Link
               href={`/companies?status=${SELECTION_STATUS_OPTIONS[0]}`}
               className="px-5 py-2 rounded-md bg-slate-200 text-black hover:bg-slate-300"
             >
@@ -202,7 +209,7 @@ export default async function Home() {
               </h4>
               <ul className="space-y-2 text-slate-700">
                 <li>・面接ログ機能の追加</li>
-                <li>・ES管理ページの追加</li>
+                <li>・ESテンプレートの追加</li>
                 <li>・締切タスク管理の追加</li>
                 <li>・カレンダー表示の追加</li>
               </ul>

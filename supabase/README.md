@@ -9,6 +9,10 @@ This directory contains the reproducible database setup for the Shukatsu OS MVP.
   - Enables row-level security for every user-owned table.
   - Adds policies so each authenticated user can only read and write their own data.
   - Keeps the current app compatible with `companies.user_id` while also adding `workspaces` and `companies.workspace_id`.
+- `migrations/202610170001_es_document_versioning.sql`
+  - Increments `es_documents.version` for every update.
+  - Uses the existing `touch_es_documents_updated_at` trigger to keep the displayed final-update time current.
+  - Keeps historical content snapshots out of the MVP; Issue #61 tracks submission-version history.
 
 ## MVP tables
 
