@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useActionState } from "react";
 import {
   CalendarEvent,
   EVENT_TYPE_OPTIONS,
+  EventFormState,
   formatDateTimeLocal,
 } from "@/lib/calendar";
 
@@ -11,7 +15,7 @@ type CompanyOption = {
 };
 
 type EventFormProps = {
-  action: (formData: FormData) => Promise<void>;
+  action: (state: EventFormState, formData: FormData) => Promise<EventFormState>;
   companies: CompanyOption[];
   error?: string;
   event?: CalendarEvent;
@@ -25,13 +29,24 @@ export function EventForm({
   event,
   submitLabel,
 }: EventFormProps) {
+  const [state, formAction] = useActionState(action, {
+    error: error ?? null,
+    values: {
+      title: event?.title ?? "",
+      event_type: event?.event_type ?? "interview",
+      start_at: formatDateTimeLocal(event?.start_at),
+      end_at: formatDateTimeLocal(event?.end_at),
+      related_company_id: event?.related_company_id ?? "",
+    },
+  });
+
   return (
-    <form action={action} className="space-y-5">
+    <form key={JSON.stringify(state.values)} action={formAction} className="space-y-5">
       {event ? <input type="hidden" name="event_id" value={event.id} /> : null}
 
-      {error ? (
+      {state.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900" role="alert">
-          {error}
+          {state.error}
         </div>
       ) : null}
 
@@ -45,7 +60,7 @@ export function EventForm({
           type="text"
           required
           maxLength={120}
-          defaultValue={event?.title ?? ""}
+          defaultValue={state.values.title}
           placeholder="例: 株式会社サンプル 最終面接"
           className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
         />
@@ -60,7 +75,7 @@ export function EventForm({
             id="event_type"
             name="event_type"
             required
-            defaultValue={event?.event_type ?? "interview"}
+            defaultValue={state.values.event_type}
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
           >
             {EVENT_TYPE_OPTIONS.map((option) => (
@@ -78,7 +93,7 @@ export function EventForm({
           <select
             id="related_company_id"
             name="related_company_id"
-            defaultValue={event?.related_company_id ?? ""}
+            defaultValue={state.values.related_company_id}
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
           >
             <option value="">企業を指定しない</option>
@@ -101,7 +116,7 @@ export function EventForm({
             name="start_at"
             type="datetime-local"
             required
-            defaultValue={formatDateTimeLocal(event?.start_at)}
+            defaultValue={state.values.start_at}
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
           />
         </div>
@@ -114,7 +129,7 @@ export function EventForm({
             id="end_at"
             name="end_at"
             type="datetime-local"
-            defaultValue={formatDateTimeLocal(event?.end_at)}
+            defaultValue={state.values.end_at}
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-950"
           />
         </div>

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import {
   buildCalendarHref,
   eventDateKey,
+  EventFormFields,
+  EventFormState,
   isEventType,
 } from "@/lib/calendar";
 import { createClient } from "@/lib/supabase/server";
@@ -34,12 +36,22 @@ function parseLocalDateTime(value: string, fieldName: string) {
   return date.toISOString();
 }
 
-function parseEventValues(formData: FormData) {
-  const title = getText(formData, "title");
-  const eventType = getText(formData, "event_type");
-  const startValue = getText(formData, "start_at");
-  const endValue = getText(formData, "end_at");
-  const relatedCompanyId = getText(formData, "related_company_id");
+function getSubmittedValues(formData: FormData): EventFormFields {
+  return {
+    title: getText(formData, "title"),
+    event_type: getText(formData, "event_type"),
+    start_at: getText(formData, "start_at"),
+    end_at: getText(formData, "end_at"),
+    related_company_id: getText(formData, "related_company_id"),
+  };
+}
+
+function parseEventValues(fields: EventFormFields) {
+  const title = fields.title;
+  const eventType = fields.event_type;
+  const startValue = fields.start_at;
+  const endValue = fields.end_at;
+  const relatedCompanyId = fields.related_company_id;
 
   if (!title) {
     throw new Error("予定名を入力してください");
@@ -67,6 +79,10 @@ function parseEventValues(formData: FormData) {
     end_at: endAt,
     related_company_id: relatedCompanyId || null,
   };
+}
+
+function formError(message: string, values: EventFormFields): EventFormState {
+  return { error: message, values };
 }
 
 async function validateRelatedCompany(
@@ -117,7 +133,10 @@ async function getWorkspaceId(
   return (createdWorkspace?.id as string | undefined) ?? null;
 }
 
-export async function createEvent(formData: FormData) {
+export async function createEvent(
+  _state: EventFormState,
+  formData: FormData,
+): Promise<EventFormState> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -127,25 +146,26 @@ export async function createEvent(formData: FormData) {
     redirect("/login");
   }
 
+  const submittedValues = getSubmittedValues(formData);
   let values: ReturnType<typeof parseEventValues>;
 
   try {
-    values = parseEventValues(formData);
+    values = parseEventValues(submittedValues);
   } catch (error) {
-    redirectWithError(
-      "/calendar/events/new",
+    return formError(
       error instanceof Error ? error.message : "入力内容を確認してください",
+      submittedValues,
     );
   }
 
   if (!(await validateRelatedCompany(supabase, user.id, values.related_company_id))) {
-    redirectWithError("/calendar/events/new", "選択した企業を確認できません");
+    return formError("選択した企業を確認できません", submittedValues);
   }
 
   const workspaceId = await getWorkspaceId(supabase, user.id);
 
   if (!workspaceId) {
-    redirectWithError("/calendar/events/new", "予定の保存先を準備できませんでした");
+    return formError("予定の保存先を準備できませんでした", submittedValues);
   }
 
   const { data, error } = await supabase
@@ -155,7 +175,7 @@ export async function createEvent(formData: FormData) {
     .single();
 
   if (error || !data) {
-    redirectWithError("/calendar/events/new", "予定を保存できませんでした");
+    return formError("予定を保存できませんでした", submittedValues);
   }
 
   revalidatePath("/");
@@ -163,9 +183,13 @@ export async function createEvent(formData: FormData) {
   redirect(buildCalendarHref("month", eventDateKey(data.start_at), data.id));
 }
 
-export async function updateEvent(formData: FormData) {
+export async function updateEvent(
+  _state: EventFormState,
+  formData: FormData,
+): Promise<EventFormState> {
   const eventId = getText(formData, "event_id");
   const editPath = eventId ? `/calendar/events/${eventId}/edit` : "/calendar";
+  const submittedValues = getSubmittedValues(formData);
   const supabase = await createClient();
   const {
     data: { user },
@@ -176,22 +200,22 @@ export async function updateEvent(formData: FormData) {
   }
 
   if (!eventId) {
-    redirectWithError(editPath, "更新する予定を確認できません");
+    return formError("更新する予定を確認できません", submittedValues);
   }
 
   let values: ReturnType<typeof parseEventValues>;
 
   try {
-    values = parseEventValues(formData);
+    values = parseEventValues(submittedValues);
   } catch (error) {
-    redirectWithError(
-      editPath,
+    return formError(
       error instanceof Error ? error.message : "入力内容を確認してください",
+      submittedValues,
     );
   }
 
   if (!(await validateRelatedCompany(supabase, user.id, values.related_company_id))) {
-    redirectWithError(editPath, "選択した企業を確認できません");
+    return formError("選択した企業を確認できません", submittedValues);
   }
 
   const { data, error } = await supabase
@@ -202,7 +226,7 @@ export async function updateEvent(formData: FormData) {
     .maybeSingle();
 
   if (error || !data) {
-    redirectWithError(editPath, "予定を更新できませんでした");
+    return formError("予定を更新できませんでした", submittedValues);
   }
 
   revalidatePath("/");

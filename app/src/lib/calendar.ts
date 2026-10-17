@@ -11,6 +11,19 @@ export type CalendarEvent = {
   related_company_id: string | null;
 };
 
+export type EventFormFields = {
+  title: string;
+  event_type: string;
+  start_at: string;
+  end_at: string;
+  related_company_id: string;
+};
+
+export type EventFormState = {
+  error: string | null;
+  values: EventFormFields;
+};
+
 export const EVENT_TYPE_OPTIONS = [
   { value: "briefing", label: "説明会" },
   { value: "interview", label: "面接" },
