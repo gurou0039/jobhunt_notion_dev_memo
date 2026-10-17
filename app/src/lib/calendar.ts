@@ -100,6 +100,15 @@ export function eventDateKey(value: string) {
   return todayDateKey(new Date(value));
 }
 
+export function eventOccursOnDate(event: CalendarEvent, dateKey: string) {
+  const dayStart = Date.parse(dateKeyToStartIso(dateKey));
+  const dayEnd = Date.parse(dateKeyToStartIso(shiftDateKey(dateKey, 1)));
+  const eventStart = Date.parse(event.start_at);
+  const eventEnd = event.end_at ? Date.parse(event.end_at) : eventStart;
+
+  return eventStart < dayEnd && (eventStart >= dayStart || eventEnd > dayStart);
+}
+
 export function shiftDateKey(value: string, amount: number) {
   const parts = parseDateKeyParts(value);
 
